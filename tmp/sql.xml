@@ -1,0 +1,30 @@
+<MODULE id="SQL" script="#cname#">
+	<SQL id="#remark#.List" type="sqlserver">
+		<TEXT>
+		 Search#table#
+		</TEXT>
+		<Paramers>
+		</Paramers>
+	</SQL>
+	<SQL id="#remark#.Save" type="sqlserver">
+		<TEXT>
+		 Save#table#
+		</TEXT>
+		<Paramers>
+		</Paramers>
+	</SQL>
+	<SQL id="#remark#.Delete" type="sqlserver">
+		<TEXT>
+		 Delete#table#
+		</TEXT>
+		<Paramers>
+		</Paramers>
+	</SQL>
+	<SQL id="#remark#.Get" type="sqlserver">
+		<TEXT>
+		SELECT  * FROM [#table#] WHERE 1!=1
+		</TEXT>
+		<Paramers>
+		</Paramers>
+	</SQL>
+</MODULE>

@@ -1,0 +1,12 @@
+#controls_search#
+<Text id="#remark#.Form">		
+	  {
+	  "Name":"#cname#",
+	  "ControlsID":"#remark#.Controls",
+	  "SearchID":"#remark#.Search",
+	  "Get":"#remark#.Get",
+	  "Delete":"#remark#.Delete",
+	  "Save":"#remark#.Save",
+	  "List":"#remark#.List"}
+</Text>
+				
