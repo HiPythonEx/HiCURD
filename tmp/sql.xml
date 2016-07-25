@@ -4,6 +4,7 @@
 		 Search#table#
 		</TEXT>
 		<Paramers>
+#Search#
 		</Paramers>
 	</SQL>
 	<SQL id="#remark#.Save" type="sqlserver">
@@ -11,6 +12,7 @@
 		 Save#table#
 		</TEXT>
 		<Paramers>
+#Save#
 		</Paramers>
 	</SQL>
 	<SQL id="#remark#.Delete" type="sqlserver">

@@ -1,6 +1,7 @@
 #controls_search#
 <Text id="#remark#.Form">		
 	  {
+	  "Tag":"#Tag#",
 	  "Name":"#cname#",
 	  "ControlsID":"#remark#.Controls",
 	  "SearchID":"#remark#.Search",
