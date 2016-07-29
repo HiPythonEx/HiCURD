@@ -1,5 +1,4 @@
-
                 case "#remark#":
                     {
-                        return CreateForm<#table#VO> (id);
+                        return new #table#VO();
                     }

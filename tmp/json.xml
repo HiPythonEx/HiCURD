@@ -1,4 +1,6 @@
-#controls_search#
+<?xml version="1.0"?>
+<Root>
+    <MODULE id="#Tag#">
 <Text id="#remark#.Form">		
 	  {
 	  "Tag":"#Tag#",
@@ -8,6 +10,11 @@
 	  "Get":"#remark#.Get",
 	  "Delete":"#remark#.Delete",
 	  "Save":"#remark#.Save",
-	  "List":"#remark#.List"}
+	  "List":"#remark#.List",
+	  "PK":"#PK#",
+	  "DelConfirm":"#DelConfirm#"}
 </Text>
+#controls_search#
+    </MODULE>
+</Root>
 				

@@ -32,7 +32,7 @@ def createAndOpenFile(name):
 	path = os.path.join(local.decode('gbk').encode('utf8')+"/src/", name)
 	if os.path.exists(path):
 		os.remove(path)
-	return codecs.open(path, 'w+', 'gbk')	
+	return codecs.open(path, 'w+', 'utf8')	
 	
 def export(file, text, script):
 	csv=createAndOpenFile(file)
@@ -82,10 +82,17 @@ def colls2json(colls):
 	for i in colls:
 		if text != "":
 				text += ",\n"
-		text += dic2json(i)
+		text += dic2json4control(i)
 	if text != "":
 		text = "[" + text + "]"
 	return text
+def dic2json4control(dic):
+	text = ""	
+	for column in range(len(dictIndex)):
+		if text != "":
+			text += ","
+		text += '"' + dictIndex[column] + '":"' + dic[dictIndex[column]] + '"'
+	return "{" + text + "}"
 def coll2params(colls):
 	text = ""
 	for k in colls:
@@ -97,17 +104,47 @@ class Table:
 		self.cname = ""
 		self.table = ""
 		self.remark = ""
+		self.DelConfirm = ""
 		self.saves = []
 		self.search = []
+		self.PK = ""
+		self.PKs = []
+	def get_pks(self):
+		if len(self.PKs) > 0:
+			return  self.PKs
+		arr = self.PK.split(";")
+		if len(arr) > 0:
+			for i in arr:
+				arr2 = i.split("|")
+				if len(arr2) > 1:
+					self.PKs.append(arr2[1])
+		for i in self.PKs:
+			print i
+		return self.PKs
 	def to_string(self):
 		return "name:" + self.cname + ";table:" + self.table + ";remark:" + self.remark + "\n\n\n\n" + colls2json(self.saves) + '\n\n\n\n' + colls2json(self.search)
 	def to_json(self):
 		text = ReadTemplate("json.xml")
 		controls_search = self.read_controls_search()
-		return text.replace("#remark#", self.remark).replace("#cname#", self.cname).replace("#controls_search#", controls_search).replace("#Tag#", self.remark)
+		return text.replace("#remark#", self.remark).replace("#cname#", self.cname).replace("#controls_search#", controls_search).replace("#Tag#", self.remark).replace("#PK#", self.PK).replace("#DelConfirm#", self.DelConfirm)
 	def to_sql_xml(self):
 		text = ReadTemplate("sql.xml")
-		return text.replace("#remark#", self.remark).replace("#cname#", self.cname).replace("#table#", self.table).replace("#Search#", coll2params(self.search)).replace("#Save#", coll2params(self.saves))
+		return text.replace("#remark#", self.remark).replace("#cname#", self.cname).replace("#table#", self.table).replace("#Search#", coll2params(self.search)).replace("#Save#", coll2params(self.saves)).replace("#condition#", self.get_condition()).replace("#condition_params#", self.get_condition_params())
+	def get_condition(self):
+		text = ""
+		for i in self.get_pks():
+			if text != "":
+				text += " and "
+			text += i + " = @" + i
+		if text != "":
+			text = " and " + text
+		return text
+	def get_condition_params(self):
+		text = ""
+		for i in self.get_pks():
+			tmp = ReadTemplate("param.xml")		
+			text += tmp.replace("#name#", i)
+		return text
 	def read_sheet(self, name):
 		sheet_name = self.remark + "." + name
 		for sheet in book.sheets():
@@ -133,23 +170,11 @@ class Table:
 			return ""
 		text = ReadTemplate("controls.xml")		
 		return text.replace("#controls#", controls).replace("#search#", search).replace("#remark#", self.remark)
-	def on_edit(self):
-		text = ReadTemplate("Edit.cs")	
-		return text.replace("#table#", self.vo_name())
-	def on_edit_case(self):
-		text = ReadTemplate("Edit_item.cs")	
-		return text.replace("#table#", self.vo_name()).replace("#remark#", self.remark).replace("#operate#", "Edit")
-	def on_delete_case(self):
-		text = ReadTemplate("Edit_item.cs")	
-		return text.replace("#table#", self.vo_name()).replace("#remark#", self.remark).replace("#operate#", "Delete")
-	def on_delete(self):
-		text = ReadTemplate("Delete.cs").decode('utf8')
-		return text.replace("#table#", self.vo_name()).replace("#cname#", self.cname)
 	def on_create_case(self):
 		text = ReadTemplate("Control_Item.cs")	
 		return text.replace("#table#", self.vo_name()).replace("#remark#", self.remark)
 	def vo_name(self):
-		return self.table.lower().capitalize()
+		return self.table.capitalize()
 
 
 for sheet in book.sheets():
@@ -159,13 +184,18 @@ for sheet in book.sheets():
 			table.cname = read_val(sheet.row(i)[0].value)
 			table.table = read_val(sheet.row(i)[1].value)
 			table.remark = read_val(sheet.row(i)[2].value)
+			table.PK = read_val(sheet.row(i)[3].value)
+			table.DelConfirm = read_val(sheet.row(i)[4].value)
 			tables.append(table)
 	if sheet.name == "ClolumnInfo":		
 		colnames =  sheet.row_values(0) 
 		for column in range(len(colnames)):
 			dictName[colnames[column]] = column
 			dictIndex[column] = colnames[column]
-		
+def First_Upper(str):
+	if len(str) <= 1:
+		return str
+	return str[0].upper() + str[1:]
 for t in tables:
 	for sheet in book.sheets():
 		if sheet.name == t.remark + ".Controls":	
@@ -173,7 +203,7 @@ for t in tables:
 				columnInfo = {}
 				for column in range(len(dictIndex)):		
 					if dictIndex[column] == "Tag":
-						columnInfo[dictIndex[column]] = read_val(sheet.row(r)[column].value).capitalize()
+						columnInfo[dictIndex[column]] = First_Upper(read_val(sheet.row(r)[column].value))
 					else:
 						columnInfo[dictIndex[column]] = read_val(sheet.row(r)[column].value) 
 				t.saves.append(columnInfo)
@@ -182,31 +212,19 @@ for t in tables:
 				columnInfo = {}
 				for column in range(len(dictIndex)):		
 					if dictIndex[column] == "Tag":
-						columnInfo[dictIndex[column]] = read_val(sheet.row(r)[column].value).capitalize()
+						columnInfo[dictIndex[column]] = First_Upper(read_val(sheet.row(r)[column].value))
 					else:
 						columnInfo[dictIndex[column]] = read_val(sheet.row(r)[column].value) 
 				t.search.append(columnInfo)
 	
 sql = ""
-json = ""
-cs = ""
-del_fun = ""
-edit_fun = ""
-edit_case = ""
-del_case = ""
 create_case = ""
 for i in tables:
-	json += i.to_json()
-	sql += i.to_sql_xml()
-	edit_fun += i.on_edit()
-	del_fun += i.on_delete()
-	edit_case += i.on_edit_case()
-	del_case += i.on_delete_case()
 	create_case += i.on_create_case()
+	export("config/" + i.table + ".xml", i.to_json(), i.table  + " json config success")
+	export("sql/" + i.table + ".xml", i.to_sql_xml(), i.table  + " sql success")
 
 text = ReadTemplate("Control.cs")	
-cs = text.replace("#create_form#", create_case).replace("#ondelete#", del_case).replace("#onedit#", edit_case).replace("#edit_funs#", edit_fun).replace("#del_funs#", del_fun)
+cs = text.replace("#create_form#", create_case)
 
-export("json.xml", json, "json success")
-export("sql.xml", sql, "sql success")
-export("controls.cs", cs, "controls code success")
+export("ControlsEvent.cs", cs, "controls code success")

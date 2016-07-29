@@ -1,3 +1,5 @@
+<?xml version="1.0"?>
+<SQL-List>
 <MODULE id="SQL" script="#cname#">
 	<SQL id="#remark#.List" type="sqlserver">
 		<TEXT>
@@ -20,13 +22,17 @@
 		 Delete#table#
 		</TEXT>
 		<Paramers>
+#condition_params#
 		</Paramers>
 	</SQL>
 	<SQL id="#remark#.Get" type="sqlserver">
 		<TEXT>
-		SELECT  * FROM [#table#] WHERE 1!=1
+		SELECT  * FROM [#table#] WHERE 1=1 #condition#
 		</TEXT>
 		<Paramers>
+#condition_params#
 		</Paramers>
 	</SQL>
 </MODULE>
+</SQL-List>
+
